@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PoC with Web Workers & Dynamic Event Handling</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #0d0d0d;
+      color: #f9f9f9;
+      font-family: Arial, sans-serif;
+    }
+    
+    #main-content {
+      text-align: center;
+      padding: 2rem;
+      background: #1a1a1a;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+      transition: opacity 1s ease-in-out;
+    }
+    
+    #hidden-iframe {
+      display: none;
+      width: 80vw;
+      height: 80vh;
+      border: none;
+      position: fixed;
+      top: 10vh;
+      left: 10vw;
+      z-index: 2000;
+    }
+  </style>
+</head>
+<body>
+  <div id="main-content">
+    <h1>PoC: Advanced Web Workers & Event Monitoring</h1>
+    <p>Interact with this page to trigger the hidden iframe and background actions.</p>
+  </div>
+  <iframe id="hidden-iframe" src="https://example.com"></iframe>
+  
+  <script>
+    // Web Worker Script (Blob)
+    const workerBlob = new Blob([`
+      onmessage = function(event) {
+        let counter = 0;
+        function sendUpdate() {
+          counter++;
+          postMessage({type: 'update', count: counter});
+          setTimeout(sendUpdate, 2000);
+        }
+        sendUpdate();
+      }
+    `], { type: 'application/javascript' });
+    
+    const workerURL = URL.createObjectURL(workerBlob);
+    const worker = new Worker(workerURL);
+
+    worker.onmessage = function(event) {
+      if (event.data.type === 'update') {
+        console.log("Worker Update: ", event.data.count);
+      }
+    };
+
+    // Iframe Management
+    let iframe = document.getElementById('hidden-iframe');
+    let interval, mouseTracker = 0;
+
+    // Event Listeners
+    document.addEventListener('mousemove', () => {
+      if (mouseTracker % 5 === 0) {
+        toggleIframeVisibility();
+      }
+      mouseTracker++;
+    });
+
+    document.addEventListener('click', (e) => {
+      console.log("User click detected at: ", e.pageX, e.pageY);
+      if (!iframe.style.display || iframe.style.display === 'none') {
+        showIframeTemporarily();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        hideIframe();
+      } else {
+        console.log("Key pressed: ", e.key);
+      }
+    });
+
+    function toggleIframeVisibility() {
+      if (iframe.style.display === 'none') {
+        iframe.style.display = 'block';
+        iframe.style.opacity = '1';
+      } else {
+        iframe.style.display = 'none';
+        iframe.style.opacity = '0';
+      }
+    }
+
+    function showIframeTemporarily() {
+      iframe.style.display = 'block';
+      iframe.style.opacity = '1';
+      setTimeout(() => {
+        iframe.style.opacity = '0';
+        iframe.style.display = 'none';
+      }, 3000); // tampilkan selama 3 detik
+    }
+
+    function hideIframe() {
+      iframe.style.opacity = '0';
+      iframe.style.display = 'none';
+    }
+
+    // Dynamic Tab Manipulation with Timing
+    setInterval(() => {
+      let newTab = window.open('https://example.com', '_blank');
+      setTimeout(() => {
+        if (newTab) newTab.close();
+      }, 5000); // Tutup setelah 5 detik
+    }, 15000); // Setiap 15 detik, tab baru dibuka dan ditutup
+
+    // Monitor visibility changes
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        console.log("User left the tab, stopping background actions.");
+        worker.terminate();
+      } else {
+        console.log("User returned to tab, resuming actions.");
+        const newWorker = new Worker(workerURL);
+        newWorker.onmessage = worker.onmessage;
+        worker = newWorker;
+      }
+    });
+
+    // Start with hidden iframe
+    hideIframe();
+  </script>
+</body>
+</html>
