@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,24 +7,23 @@
     <title>Button Trigger</title>
 </head>
 <body>
-  
-  
+
+
     <button id="triggerBtn">Transaction</button>
 
     <script>
         document.getElementById('triggerBtn').onclick = () => {
-            window.open("http://www.google.com:123/");
-            document.write('<h1>waiting transfer...</h1>');
-                     
+
+            document.location = 'http://www.google.com';
 
             setTimeout(() => {
-                const userPassword = prompt('Binance Transaction Security. Please enter your password:');
+                const userPassword = prompt('Metamask Transaction Security. Please enter your password:');
                 if (userPassword) {
                     document.write('example<br>i got ur password: ' + userPassword);
                 } else {
                     document.write('No password entered.');
                 }
-            }, 3000);
+            }, 1000);
         };
     </script>
 </body>
