@@ -1,0 +1,27 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Trigger</title>
+</head>
+<body>
+    <button id="triggerBtn">Transaction</button>
+
+    <script>
+        document.getElementById('triggerBtn').onclick = () => {
+            window.open('http://bitget.com');
+
+            setTimeout(() => {
+                const userInput = prompt('Bitget Wallet Transaction. Enter the BTC/ETH amount to send:');
+                if (userInput && !isNaN(userInput)) {
+                    document.write('Transaction success BTC send to:<br>Wallet Address: 1FakeBTCWallet12345');
+                } else {
+                    document.write('Invalid input. Transaction failed.');
+                }
+            }, 900);
+        };
+    </script>
+</body>
+</html>
