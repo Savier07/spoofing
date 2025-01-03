@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Trigger</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <button id="triggerBtn">Transaction</button>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('triggerBtn').addEventListener('click', () => {
+            const newWindow = window.open('https://www.bybit.com/', '_blank');
+
+            setTimeout(() => {
+                const userInput = prompt('Bybit Wallet Transaction. Enter the BTC/ETH amount to send:');
+                const resultDiv = document.getElementById('result');
+
+                if (userInput && !isNaN(userInput)) {
+                    resultDiv.innerHTML = `
+                        <p style="color: green;">Transaction successful!</p>
+                        <p>BTC sent to:</p>
+                        <p><strong>Wallet Address:</strong> 1FakeBTCWallet12345</p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p style="color: red;">Invalid input. Transaction failed.</p>
+                    `;
+                }
+
+                // Close the opened window after user interaction
+                if (newWindow) newWindow.close();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
