@@ -1,0 +1,32 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>BR-PERMLIFE1 - iframe</title>
+<style>
+  body { font: 14px/1.5 system-ui, sans-serif; margin: .8rem; }
+  button { font: inherit; padding: .45rem .8rem; }
+  code { background: #eee; padding: .1rem .3rem; }
+  #out { white-space: pre-wrap; margin-top: .6rem; }
+</style>
+
+<p>iframe origin: <code id="origin"></code></p>
+<button id="go">Request geolocation (iframe)</button>
+<div id="out"></div>
+
+<script>
+  const out = document.getElementById('out');
+  document.getElementById('origin').textContent = location.origin;
+
+  const say = (m) => {
+    out.textContent += m + '\n';
+    try { parent.postMessage({ brPermLife: m }, '*'); } catch (_) {}
+  };
+
+  document.getElementById('go').onclick = () => {
+    say('requesting geolocation for ' + location.origin);
+    navigator.geolocation.getCurrentPosition(
+      () => say('GRANTED - now choose "Until I close this site" in the prompt if you have not'),
+      (e) => say('denied/error -> ' + e.message),
+      { timeout: 10000 }
+    );
+  };
+</script>
