@@ -2,14 +2,58 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>B genuine</title>
+<title>C2 frame</title>
 </head>
 <body>
-<p id="s">B GENUINE BODY. If you can read this line, this run did not cross.</p>
-<p>A crossed run looks different: the address bar shows this page's URL but the body is page A's article with the text C2-MARKER-FROM-A, in reader mode styling, and this paragraph is absent.</p>
+<p><button id="g">ARM (cross-site frame)</button></p>
+<p id="s">frame idle</p>
 <script>
 (function () {
-  document.title = 'B:genuine:' + location.host;
+  var s = document.getElementById('s');
+  var q = new URLSearchParams(location.search);
+
+  var A_ORIGIN = null;
+  try {
+    var au = new URL(q.get('a') || '');
+    if (au.protocol === 'https:') A_ORIGIN = au.origin;
+  } catch (e) {}
+
+  var Bu = null;
+  try { Bu = new URL(q.get('b') || ''); } catch (e) {}
+
+  if (location.protocol !== 'https:') { s.textContent = 'refused: frame must be https'; return; }
+  if (!A_ORIGIN) { s.textContent = 'refused: missing ?a=<parent https origin>'; return; }
+  if (A_ORIGIN === location.origin) { s.textContent = 'refused: frame must be a different site than A'; return; }
+  if (!Bu || Bu.protocol !== 'https:') { s.textContent = 'refused: missing ?b=<https url>'; return; }
+
+  var armed = false;
+  var fired = false;
+
+  document.getElementById('g').onclick = function () {
+    armed = true;
+    parent.postMessage('c2-armed', A_ORIGIN);
+    s.textContent = 'armed';
+  };
+
+  // The browser dispatches beforeunload to this cross-site frame in parallel
+  // with the top page, while the top page is still held. Navigation is disabled
+  // inside the handler, so the top navigation to B is requested from the next
+  // task.
+  addEventListener('beforeunload', function () {
+    if (!armed || fired) return;
+    fired = true;
+    parent.postMessage({ c2: 'bu' }, A_ORIGIN);
+    var ch = new MessageChannel();
+    ch.port1.onmessage = function () {
+      try {
+        parent.postMessage({ c2: 'nav' }, A_ORIGIN);
+        top.location.href = Bu.href;
+      } catch (err) {
+        parent.postMessage({ c2: 'err', m: String(err) }, A_ORIGIN);
+      }
+    };
+    ch.port2.postMessage(0);
+  });
 })();
 </script>
 </body>
