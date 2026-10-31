@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>EP-HOST-1 victim (other site)</title>
+<style>
+  body { font: 15px/1.5 -apple-system, system-ui, sans-serif; margin: 24px; max-width: 760px; }
+  #status { padding: 10px 12px; border: 1px solid #999; background: #f4f4f4; font-family: ui-monospace, monospace; white-space: pre-wrap; }
+  .box { margin-top: 16px; padding: 20px; border: 2px solid #333; }
+  .ephost1-hit-9q2x { background: #fff0f0; }
+  .ephost1-ctl-9q2x { background: #eef5ff; }
+</style>
+</head>
+<body>
+<h1>EP-HOST-1 victim page (different registrable domain)</h1>
+<p>This page stands in for an unrelated site. The status block reports the computed display of each box, so a hidden box is still reported here.</p>
+<div id="status">script not run</div>
+
+<div class="box ephost1-hit-9q2x" id="hit">Box A (class ephost1-hit-9q2x, same class as the TEST decoy)</div>
+<div class="box ephost1-ctl-9q2x" id="ctl">Box B (class ephost1-ctl-9q2x, same class as the CONTROL decoy)</div>
+<div class="box" id="ref">Box C (no class, reference)</div>
+
+<script>
+  function d(id) { return getComputedStyle(document.getElementById(id)).display; }
+  function report() {
+    var a = d('hit'), b = d('ctl'), c = d('ref');
+    var verdict = (a === 'none' ? 'A HIDDEN' : 'A visible') + ', ' +
+                  (b === 'none' ? 'B HIDDEN' : 'B visible') + ', ' +
+                  (c === 'none' ? 'C HIDDEN' : 'C visible');
+    document.getElementById('status').textContent =
+      'stage: victim-check\n' +
+      'origin: ' + self.origin + '\n' +
+      'A (test class) display: ' + a + '\n' +
+      'B (control class) display: ' + b + '\n' +
+      'C (reference) display: ' + c + '\n' +
+      'verdict: ' + verdict + '\n' +
+      'time: ' + new Date().toISOString();
+    return verdict;
+  }
+  console.log('[EP-HOST-1] victim', report());
+  setInterval(report, 1000);
+</script>
+</body>
+</html>
