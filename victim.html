@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RH chain probe victim</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 15px/1.4 -apple-system, system-ui, sans-serif; margin: 0; padding: 12px 16px; }
+  pre, #log { font: 12px/1.35 ui-monospace, Menlo, monospace; white-space: pre-wrap; background: #8881; padding: 6px; border-radius: 6px; }
+  #hits { background: #c602; border: 1px solid #c60; min-height: 1.4em; }
+  .entry { border-bottom: 1px solid #8883; padding: 3px 0; }
+</style>
+</head>
+<body>
+<h1 style="font-size:18px">Victim page (stands in for a third-party dApp)</h1>
+<p>This document never called the wallet. Origin: <code id="o"></code></p>
+<h2 style="font-size:15px">Marker hits on THIS document</h2>
+<pre id="hits"></pre>
+<button onclick="copyEvidence()">Copy evidence JSON</button>
+<div id="log"></div>
+<script src="probe.js"></script>
+<script>
+  document.getElementById("o").textContent = location.origin;
+  log("victim loaded", { referrer: document.referrer, ...surfaces() });
+  let lastTitle = document.title;
+  setInterval(() => {
+    hookNativeEvents();
+    if (document.title !== lastTitle) {
+      lastTitle = document.title;
+      log("document.title changed by injected code", lastTitle);
+    }
+  }, 300);
+</script>
+</body>
+</html>
