@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>S (receipt probe)</title>
+</head>
+<body>
+<h1>PAGE S</h1>
+<p>Probe for IOS-SKUS-INJECT-1. Logs key names and lengths only.</p>
+<p id="cfg">-</p>
+<p><a href="?view=1">View log</a></p>
+<pre id="log"></pre>
+<script>
+var q=new URLSearchParams(location.search);
+var P=q.get('p')||'fbclid';
+var V='https://account.brave.com/?'+P+'=1';
+var KEY='skus-probe-log';
+var KEYS=['braveVpn.receipt','braveLeo.receipt','braveOrigin.receipt','braveLeo.orderId','braveOrigin.orderId'];
+function now(){return new Date().toISOString().slice(11,23)}
+function log(s){var l=[];try{l=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){}l.push(now()+' '+s);try{localStorage.setItem(KEY,JSON.stringify(l))}catch(e){}}
+function found(){var r=[];for(var i=0;i<KEYS.length;i++){var v=localStorage.getItem(KEYS[i]);if(v!==null)r.push(KEYS[i]+' len '+v.length)}return r}
+if(q.get('view')){
+  document.getElementById('log').textContent=JSON.parse(localStorage.getItem(KEY)||'[]').join('\n');
+  document.getElementById('cfg').innerHTML='<button onclick="localStorage.clear();location.reload()">Clear log and keys</button>';
+} else {
+  document.getElementById('cfg').textContent='param='+P+' target='+V;
+  var seen=false, polls=0;
+  window.addEventListener('load',function(){
+    log('load; keys before: '+(found().join(', ')||'none'));
+    location.href=V;
+    var t=setInterval(function(){
+      polls++;
+      var f=found();
+      if(f.length&&!seen){seen=true;log('HIT after '+polls+' polls: '+f.join(', '))}
+      if(polls%100===0)log('poll '+polls+' keys: '+(f.join(', ')||'none'));
+      if(polls>3000)clearInterval(t);
+    },10);
+  });
+  window.addEventListener('pagehide',function(){log('pagehide polls='+polls+' keys: '+(found().join(', ')||'none'))});
+}
+</script>
+</body>
+</html>
