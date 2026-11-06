@@ -1,0 +1,29 @@
+<!doctype html>
+<!-- VICTIM dApp (owned): host on https://syarifmsajjad.github.io/wv/ (separate registrable domain from syarif07.my.id).
+     Only purpose: create a Brave Wallet account grant for THIS origin (connect once with a burner account). -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WV victim dApp</title>
+<style>body{font:16px system-ui;margin:16px;max-width:560px}button{display:block;width:100%;padding:14px;margin:10px 0;font-size:16px}pre{white-space:pre-wrap;word-break:break-all;background:#f3f3f3;padding:8px}</style>
+<h1>WV victim dApp</h1>
+<p>Origin: <b id="o"></b></p>
+<button id="c">1. Connect ETH (grant this origin)</button>
+<button id="s">2. Connect Solana (optional)</button>
+<button id="a">Show eth_accounts</button>
+<pre id="log"></pre>
+<script>
+  const log = m => { document.getElementById('log').textContent += m + '\n'; };
+  document.getElementById('o').textContent = location.origin;
+  document.getElementById('c').onclick = async () => {
+    try { log('eth_requestAccounts -> ' + JSON.stringify(await window.ethereum.request({method: 'eth_requestAccounts'}))); }
+    catch (e) { log('ERR ' + e.message); }
+  };
+  document.getElementById('s').onclick = async () => {
+    try { const p = window.braveSolana || window.solana; const r = await p.connect(); log('solana.connect -> ' + r.publicKey.toString()); }
+    catch (e) { log('ERR ' + e.message); }
+  };
+  document.getElementById('a').onclick = async () => {
+    try { log('eth_accounts -> ' + JSON.stringify(await window.ethereum.request({method: 'eth_accounts'}))); }
+    catch (e) { log('ERR ' + e.message); }
+  };
+</script>
