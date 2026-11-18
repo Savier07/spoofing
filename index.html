@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Link test</title>
+<style>
+  body { font-family: -apple-system, sans-serif; margin: 0; padding: 16px; line-height: 1.45; background: #fff; color: #111; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .cfg { background: #f3f3f3; border-radius: 8px; padding: 10px 12px; font-size: 14px; margin: 10px 0 16px; }
+  .cell { border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; margin: 10px 0; }
+  .cell b.id { display: inline-block; min-width: 34px; }
+  .cell p { margin: 4px 0; font-size: 13px; color: #555; }
+  a.btn, button { display: inline-block; font-size: 16px; padding: 8px 12px; margin-top: 6px; border-radius: 6px;
+                  border: 1px solid #1565c0; background: #e3f2fd; color: #0d47a1; text-decoration: none; }
+  .ctl { border-color: #bbb; }
+  .ctl a.btn, .ctl button { border-color: #777; background: #f5f5f5; color: #333; }
+  code { font-size: 12px; word-break: break-all; }
+  select { font-size: 16px; }
+</style>
+</head>
+<body>
+<h1>Link test</h1>
+<div class="cfg">
+  Target: <code id="target"></code><br>
+  Browser under test:
+  <select id="browser">
+    <option value="brave">Brave iOS</option>
+    <option value="safari">Safari iOS</option>
+    <option value="chrome">Chrome iOS</option>
+  </select>
+  <br><span style="font-size:12px;color:#555">Every link below carries <code>b=&lt;browser&gt;</code> so the log can tell Brave from Safari (same User-Agent).</span>
+</div>
+
+<div class="cell"><b class="id">T1</b> new tab, tracking param (query filter re-issue)
+  <p>Tap normally.</p>
+  <a class="btn" data-cell="T1" data-scheme="https" data-extra="fbclid=IwAR0linktest" target="_blank">Open T1</a>
+</div>
+
+<div class="cell"><b class="id">T1n</b> same as T1 with rel=noopener
+  <a class="btn" data-cell="T1n" data-scheme="https" data-extra="fbclid=IwAR0linktest" target="_blank" rel="noopener">Open T1n</a>
+</div>
+
+<div class="cell"><b class="id">T2</b> new tab, http:// (HTTPS upgrade re-issue)
+  <a class="btn" data-cell="T2" data-scheme="http" target="_blank">Open T2</a>
+</div>
+
+<div class="cell"><b class="id">T3</b> new tab, POST form to http:// (HTTPS upgrade re-issue with body)
+  <form method="POST" target="_blank" data-cell="T3" data-scheme="http">
+    <input type="hidden" name="c" value="T3"><input type="hidden" name="b" value="">
+    <input type="hidden" name="note" value="post-body-present">
+    <button type="submit">Submit T3</button>
+  </form>
+</div>
+
+<div class="cell"><b class="id">M1</b> long-press menu
+  <p>Do NOT tap. Long-press the link, choose <b>Open in New Tab</b>, then switch to that tab.</p>
+  <a class="btn" data-cell="M1" data-scheme="https">Long-press me (M1)</a>
+</div>
+
+<div class="cell ctl"><b class="id">C1</b> control: same tab, tracking param (re-issue in a tab showing this page)
+  <a class="btn" data-cell="C1" data-scheme="https" data-extra="fbclid=IwAR0linktest">Open C1 (same tab)</a>
+</div>
+
+<div class="cell ctl"><b class="id">C2</b> control: new tab, untracked param (no re-issue)
+  <a class="btn" data-cell="C2" data-scheme="https" data-extra="foo=1" target="_blank">Open C2</a>
+</div>
+
+<div class="cell ctl"><b class="id">C3</b> control: new tab, plain https link (no re-issue)
+  <a class="btn" data-cell="C3" data-scheme="https" target="_blank">Open C3</a>
+</div>
+
+<div class="cell ctl"><b class="id">C4</b> control for T3: new tab, POST form to https:// (no upgrade)
+  <form method="POST" target="_blank" data-cell="C4" data-scheme="https">
+    <input type="hidden" name="c" value="C4"><input type="hidden" name="b" value="">
+    <input type="hidden" name="note" value="post-body-present">
+    <button type="submit">Submit C4</button>
+  </form>
+</div>
+
+<div class="cell ctl"><b class="id">C5</b> control for T3: same tab, POST form to http://
+  <form method="POST" data-cell="C5" data-scheme="http">
+    <input type="hidden" name="c" value="C5"><input type="hidden" name="b" value="">
+    <input type="hidden" name="note" value="post-body-present">
+    <button type="submit">Submit C5 (same tab)</button>
+  </form>
+</div>
+
+<script>
+  // Edit these two lines if the logger lives somewhere else.
+  var B_HOST = 'syarif07.my.id';
+  var B_PATH = '/proof/ss/';
+
+  function getBrowser() {
+    try { return localStorage.getItem('lt_browser') || 'brave'; } catch (e) { return 'brave'; }
+  }
+  function setBrowser(v) {
+    try { localStorage.setItem('lt_browser', v); } catch (e) {}
+  }
+  function build() {
+    var b = document.getElementById('browser').value;
+    document.getElementById('target').textContent = B_HOST + B_PATH + 'log.php';
+    var links = document.querySelectorAll('a[data-cell]');
+    for (var i = 0; i < links.length; i++) {
+      var a = links[i];
+      var url = a.getAttribute('data-scheme') + '://' + B_HOST + B_PATH + 'log.php?c=' +
+                a.getAttribute('data-cell') + '&b=' + b;
+      var extra = a.getAttribute('data-extra');
+      if (extra) { url += '&' + extra; }
+      a.href = url;
+    }
+    var forms = document.querySelectorAll('form[data-cell]');
+    for (var j = 0; j < forms.length; j++) {
+      var f = forms[j];
+      f.action = f.getAttribute('data-scheme') + '://' + B_HOST + B_PATH + 'log.php';
+      f.querySelector('input[name="b"]').value = b;
+    }
+  }
+  var sel = document.getElementById('browser');
+  sel.value = getBrowser();
+  sel.addEventListener('change', function () { setBrowser(sel.value); build(); });
+  build();
+</script>
+</body>
+</html>
